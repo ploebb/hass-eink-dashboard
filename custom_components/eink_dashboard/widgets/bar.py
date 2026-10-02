@@ -16,7 +16,13 @@
 
 from __future__ import annotations
 
-from ..const import PADDING, DisplayConfig, Widget
+from ..const import (
+    COLOR_LIGHT_GRAY,
+    PADDING,
+    DisplayConfig,
+    Widget,
+    color_to_hex,
+)
 from ._helpers import _color_context, _fmt, _widget_dim
 
 # Gap between the end of the track and the value text, as a
@@ -29,6 +35,27 @@ _FONT_RATIO = 0.95
 # A non-zero value never fills less than this many track heights,
 # so tiny readings stay visible.
 _MIN_FILL_RATIO = 0.75
+
+
+def _snap_gray(value: int, display_levels: int) -> int:
+    """Snap a gray value to the nearest level the display can show.
+
+    A gray between two levels is dithered into a stippled pattern by
+    the e-ink optimiser; a gray that is exactly a level stays flat.
+    Two-level displays have no gray to snap to, so the value is
+    returned unchanged and gets dithered.
+
+    Args:
+        value: Grayscale intensity, 0-255.
+        display_levels: Number of gray levels of the display.
+
+    Returns:
+        Grayscale intensity of the nearest level.
+    """
+    if display_levels <= 2:
+        return value
+    step = 255 / (display_levels - 1)
+    return round(round(value / step) * step)
 
 
 def _fill_path(
@@ -109,6 +136,7 @@ def _build_bar_context(
 
     entity_id: str = widget.get("entity", "")
     states = config.get("states", {})
+    display_levels = config.get("display_levels", 16)
     attribute: str | None = widget.get("attribute")
     min_val = float(widget.get("min", -100))
     max_val = float(widget.get("max", 100))
@@ -191,6 +219,9 @@ def _build_bar_context(
         "tick_w": max(2, round(track_h * 0.18)),
         "tick_top": 0,
         "tick_h": h,
+        "track_color": color_to_hex(
+            _snap_gray(COLOR_LIGHT_GRAY, display_levels)
+        ),
         "fill_path": fill_path,
         "show_value": show_value,
         "value_text": value_text,

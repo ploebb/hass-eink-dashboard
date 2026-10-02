@@ -177,3 +177,29 @@ class TestRenderBar:
         )
         assert_has_dark_pixels(img, 304, 25, 380, 46, threshold=100)
         assert_all_white(img, 381, 0, 800, 100)
+
+    # ── Display levels ─────────────────────────────────────────────────
+
+    def test_track_color_snaps_to_display_level(self) -> None:
+        ctx4 = _build_bar_context(
+            self._base_widget(), self._config("0", display_levels=4)
+        )
+        ctx16 = _build_bar_context(
+            self._base_widget(), self._config("0", display_levels=16)
+        )
+        ctx2 = _build_bar_context(
+            self._base_widget(), self._config("0", display_levels=2)
+        )
+        assert ctx4["track_color"] == "#aaaaaa"
+        assert ctx16["track_color"] == "#bbbbbb"
+        # Two levels have no gray to snap to: unchanged.
+        assert ctx2["track_color"] == "#b4b4b4"
+
+    def test_track_is_flat_after_dithering(self) -> None:
+        # With the optimiser on, an off-level gray would be dithered
+        # into a stipple; the snapped track must stay one flat tone.
+        cfg = self._config("289", width=800, display_levels=4, optimize=True)
+        img = render_to_image([self._base_widget(x=360)], cfg)
+        # Row through the left half of the track (x 364..500, y 35).
+        row = {img.getpixel((x, 35)) for x in range(364, 500)}
+        assert row == {170}

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      width="{{ w }}" height="{{ h }}">
 {%- if has_entity -%}
-{# Track: light gray, fully rounded. #}
+{# Track: light gray snapped to a display level, fully rounded. #}
 <rect x="{{ track_x }}" y="{{ track_top }}"
   width="{{ track_w }}" height="{{ track_h }}"
   rx="{{ track_r }}" ry="{{ track_r }}"
-  fill="{{ hex_light_gray }}"/>
+  fill="{{ track_color }}"/>
 {%- if fill_path -%}
 {# Fill: flat at the zero line, rounded at the outer end. #}
 <path d="{{ fill_path }}" fill="{{ hex_black }}"/>
