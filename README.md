@@ -172,6 +172,7 @@ The component ships a WYSIWYG Lovelace card for editing the dashboard layout.
 | Sensor | Entity state with sparkline history graph |
 | Graph | Time-series line or bar chart for one or more numeric entities |
 | Gauge | Arc-style gauge for a single numeric entity |
+| Bar | Horizontal zero-centred bar for a signed numeric entity (e.g. grid import/feed-in) |
 | Weather | Current conditions + N-day forecast with icons |
 | Calendar | Upcoming events from a Home Assistant calendar entity |
 | Device Battery | Battery level indicator for a device |

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Bar widget**: horizontal bar with zero at the centre of the
+  track for signed readings such as grid power. The fill grows left
+  for negative and right for positive values, flat at the zero tick
+  and rounded at the outer end, with the value as text next to the
+  track. Options: `min`, `max`, `unit`, `show_unit`, `show_value`,
+  `show_sign`, `decimals`, `attribute`, `bold_value`.
+
 ## [0.8.0] - 2026-09-30
 
 ### Added

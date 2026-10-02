@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="{{ w }}" height="{{ h }}">
+{%- if has_entity -%}
+{# Track: light gray, fully rounded. #}
+<rect x="{{ track_x }}" y="{{ track_top }}"
+  width="{{ track_w }}" height="{{ track_h }}"
+  rx="{{ track_r }}" ry="{{ track_r }}"
+  fill="{{ hex_light_gray }}"/>
+{%- if fill_path -%}
+{# Fill: flat at the zero line, rounded at the outer end. #}
+<path d="{{ fill_path }}" fill="{{ hex_black }}"/>
+{%- endif -%}
+{# Zero tick: overshoots the track so it stays visible on a fill. #}
+<rect x="{{ zero_x - tick_w / 2 }}" y="{{ tick_top }}"
+  width="{{ tick_w }}" height="{{ tick_h }}"
+  fill="{{ hex_black }}"/>
+{%- if show_value -%}
+<text
+  x="{{ value_x }}" y="{{ value_y }}"
+  font-family="Roboto"
+  font-size="{{ value_font_sz }}"
+  font-weight="{{ 'bold' if value_bold else '500' }}"
+  dominant-baseline="central"
+  fill="{{ hex_gray if value_is_zero else hex_black }}">{{ value_text }}</text>
+{%- endif -%}
+{%- endif -%}
+</svg>

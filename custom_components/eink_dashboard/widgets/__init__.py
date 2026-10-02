@@ -21,6 +21,7 @@ template context dict.  This package re-exports all builders so
 import.
 """
 
+from .bar import _build_bar_context
 from .calendar import _build_calendar_context
 from .device_battery import (
     _build_device_battery_context,
@@ -43,6 +44,7 @@ from .waste_schedule import (
 from .weather import _build_weather_context
 
 __all__ = [
+    "_build_bar_context",
     "_build_calendar_context",
     "_build_device_battery_context",
     "_build_entities_context",
