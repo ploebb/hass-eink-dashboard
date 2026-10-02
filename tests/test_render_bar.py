@@ -50,9 +50,7 @@ class TestRenderBar:
 
     def _config(self, value: str = "0", **overrides: object) -> dict:
         """Return display config with the power sensor at ``value``."""
-        return make_config(
-            self._DEFAULTS, states=_states(value), **overrides
-        )
+        return make_config(self._DEFAULTS, states=_states(value), **overrides)
 
     def _base_widget(self, **overrides: object) -> dict[str, object]:
         """Return a 380x30 bar widget dict merged with overrides."""
