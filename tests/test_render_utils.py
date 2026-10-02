@@ -62,7 +62,7 @@ class TestColorToHex:
         assert color_to_hex(255) == "#ffffff"
 
     def test_gray(self) -> None:
-        # 120 is COLOR_GRAY — must convert to #787878.
+        # 120 (0x78) converts to #787878.
         assert color_to_hex(120) == "#787878"
 
     def test_light_gray(self) -> None:

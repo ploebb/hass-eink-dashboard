@@ -361,10 +361,12 @@ class TestRenderSensor:
             }
         ]
         img = render_to_image(widgets, self._config(display_levels=2))
+        # A gray fill is exactly COLOR_GRAY; antialiased edge pixels of
+        # the black ring land near it only by accident, so match tight.
         found_gray = False
         for y in range(ry1, ry2):
             for x in range(rx1, rx2):
-                if COLOR_GRAY - 20 < pixel(img, x, y) < COLOR_GRAY + 20:
+                if abs(pixel(img, x, y) - COLOR_GRAY) <= 2:
                     found_gray = True
                     break
         assert not found_gray, (

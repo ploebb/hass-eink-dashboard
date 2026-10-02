@@ -19,6 +19,7 @@ from typing import Any
 
 from PIL import Image, ImageChops
 
+from custom_components.eink_dashboard.const import COLOR_GRAY
 from custom_components.eink_dashboard.render import (
     WidgetMetrics,
     _compute_metrics,
@@ -217,8 +218,8 @@ def assert_has_gray_pixels(
     y1: int,
     x2: int,
     y2: int,
-    low: int = 100,
-    high: int = 140,
+    low: int = COLOR_GRAY - 20,
+    high: int = COLOR_GRAY + 20,
 ) -> None:
     """Assert that at least one pixel in the region is gray.
 
@@ -246,8 +247,8 @@ def assert_no_gray_pixels(
     y1: int,
     x2: int,
     y2: int,
-    low: int = 100,
-    high: int = 140,
+    low: int = COLOR_GRAY - 20,
+    high: int = COLOR_GRAY + 20,
 ) -> None:
     """Assert that no pixel in the region is gray.
 
