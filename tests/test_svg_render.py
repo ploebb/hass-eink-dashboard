@@ -21,6 +21,7 @@ import pytest
 import resvg_py
 from PIL import Image
 
+from custom_components.eink_dashboard.const import COLOR_GRAY
 from custom_components.eink_dashboard.svg_render import (
     _TEMPLATE_DIR,
     _jinja_env,
@@ -498,6 +499,6 @@ def test_chip_with_active_icon_fills_circle(render_macro) -> None:
         icon_cy - 1,
         probe_x + 2,
         icon_cy + 1,
-        low=100,
-        high=160,
+        low=COLOR_GRAY - 20,
+        high=COLOR_GRAY + 20,
     )
