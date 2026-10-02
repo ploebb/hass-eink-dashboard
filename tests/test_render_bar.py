@@ -203,3 +203,22 @@ class TestRenderBar:
         # Row through the left half of the track (x 364..500, y 35).
         row = {img.getpixel((x, 35)) for x in range(364, 500)}
         assert row == {170}
+
+    def test_zero_text_gray_snaps_to_display_level(self) -> None:
+        ctx4 = _build_bar_context(
+            self._base_widget(), self._config("0", display_levels=4)
+        )
+        assert ctx4["gray_color"] == "#555555"
+
+    def test_zero_text_is_not_stippled_after_dithering(self) -> None:
+        # Off-level gray text is dithered into an even mix of the two
+        # neighbouring levels.  With the snapped gray the level itself
+        # dominates; the rest is antialiasing at the glyph edges.
+        cfg = self._config("0", width=800, display_levels=4, optimize=True)
+        img = render_to_image([self._base_widget(x=360)], cfg)
+        pixels = [
+            img.getpixel((x, y))
+            for x in range(660, 740)
+            for y in range(25, 46)
+        ]
+        assert pixels.count(85) > 2 * pixels.count(170)

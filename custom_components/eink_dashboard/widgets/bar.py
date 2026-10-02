@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from ..const import (
+    COLOR_GRAY,
     COLOR_LIGHT_GRAY,
     PADDING,
     DisplayConfig,
@@ -222,6 +223,7 @@ def _build_bar_context(
         "track_color": color_to_hex(
             _snap_gray(COLOR_LIGHT_GRAY, display_levels)
         ),
+        "gray_color": color_to_hex(_snap_gray(COLOR_GRAY, display_levels)),
         "fill_path": fill_path,
         "show_value": show_value,
         "value_text": value_text,

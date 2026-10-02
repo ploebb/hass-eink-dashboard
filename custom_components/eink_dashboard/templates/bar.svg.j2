@@ -21,7 +21,7 @@
   font-size="{{ value_font_sz }}"
   font-weight="{{ 'bold' if value_bold else '500' }}"
   dominant-baseline="central"
-  fill="{{ hex_gray if value_is_zero else hex_black }}">{{ value_text }}</text>
+  fill="{{ gray_color if value_is_zero else hex_black }}">{{ value_text }}</text>
 {%- endif -%}
 {%- endif -%}
 </svg>
