@@ -26,6 +26,12 @@ _GAP_RATIO = 0.75
 _VALUE_W_RATIO = 3.6
 # Value font size as a fraction of the track height.
 _FONT_RATIO = 0.95
+# Value font size as a fraction of the track height when the text sits
+# inside the track.
+_INSIDE_FONT_RATIO = 0.6
+# Clearance between inside text and the zero tick, as a fraction of
+# the track height.
+_INSIDE_PAD_RATIO = 0.3
 # A non-zero value never fills less than this many track heights,
 # so tiny readings stay visible.
 _MIN_FILL_RATIO = 0.75
@@ -94,7 +100,13 @@ def _build_bar_context(
             ``show_sign`` (prefix positive values with ``+``;
             default ``True``),
             ``decimals`` (decimal places; default 0),
-            ``bold_value`` (bold value text; default ``True``),
+            ``value_position`` (``"outside"`` puts the value right of
+            the track; ``"inside"`` puts it in the empty half of the
+            track, left of the zero tick for positive values and
+            right of it for negative ones, so it never overlaps the
+            fill; default ``"outside"``),
+            ``bold_value`` (bold value text; default ``True`` outside
+            the track and ``False`` inside),
             ``track_gray`` (track gray, 0-255; default the standard
             light gray, which is a display level).  A gray that is
             not a display level is dithered by the e-ink optimiser,
@@ -121,7 +133,8 @@ def _build_bar_context(
     show_value: bool = bool(widget.get("show_value", True))
     show_sign: bool = bool(widget.get("show_sign", True))
     decimals = int(widget.get("decimals", 0))
-    value_bold: bool = bool(widget.get("bold_value", True))
+    inside: bool = widget.get("value_position", "outside") == "inside"
+    value_bold: bool = bool(widget.get("bold_value", not inside))
     track_gray = widget.get("track_gray")
 
     state = states.get(entity_id) if entity_id else None
@@ -149,10 +162,13 @@ def _build_bar_context(
     overshoot = max(2, round(h * 0.13))
     track_h = max(2, h - 2 * overshoot)
     track_top = overshoot
-    font_sz = max(8, round(track_h * _FONT_RATIO))
+    font_sz = max(
+        8, round(track_h * (_INSIDE_FONT_RATIO if inside else _FONT_RATIO))
+    )
     gap = round(track_h * _GAP_RATIO)
     value_w = round(font_sz * _VALUE_W_RATIO) if show_value else 0
-    track_w = max(track_h * 2, w - (value_w + gap if show_value else 0))
+    reserved = value_w + gap if show_value and not inside else 0
+    track_w = max(track_h * 2, w - reserved)
     zero_x = track_w / 2
     half_w = track_w / 2
 
@@ -185,6 +201,19 @@ def _build_bar_context(
         if unit:
             value_text = f"{value_text} {unit}"
 
+    # Inside the track the text sits in the half without fill, hugging
+    # the zero tick; zero and unknown values use the left half.
+    tick_w = max(2, round(track_h * 0.18))
+    value_x = track_w + gap
+    value_anchor = "start"
+    if inside:
+        pad = round(track_h * _INSIDE_PAD_RATIO)
+        if value is not None and value < 0:
+            value_x = zero_x + tick_w / 2 + pad
+        else:
+            value_x = zero_x - tick_w / 2 - pad
+            value_anchor = "end"
+
     return {
         "w": w,
         "h": h,
@@ -195,7 +224,7 @@ def _build_bar_context(
         "track_h": track_h,
         "track_r": track_h / 2,
         "zero_x": zero_x,
-        "tick_w": max(2, round(track_h * 0.18)),
+        "tick_w": tick_w,
         "tick_top": 0,
         "tick_h": h,
         "track_color": (
@@ -206,7 +235,8 @@ def _build_bar_context(
         "fill_path": fill_path,
         "show_value": show_value,
         "value_text": value_text,
-        "value_x": track_w + gap,
+        "value_x": value_x,
+        "value_anchor": value_anchor,
         "value_y": track_top + track_h / 2,
         "value_font_sz": font_sz,
         "value_bold": value_bold,

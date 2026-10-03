@@ -14,7 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for negative and right for positive values, flat at the zero tick
   and rounded at the outer end, with the value as text next to the
   track. Options: `min`, `max`, `unit`, `show_unit`, `show_value`,
-  `show_sign`, `decimals`, `attribute`, `bold_value`, `track_gray`.
+  `show_sign`, `decimals`, `attribute`, `bold_value`, `track_gray`,
+  `value_position`. With `value_position: inside` the track spans the
+  full widget width and the value sits in the empty half of the
+  track, left of the zero tick for positive values and right of it
+  for negative ones, in a smaller, non-bold font.
 - **Hinted text rendering**: display settings `hinted_text`,
   `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
   Text is drawn by Pillow with FreeType hinting and no

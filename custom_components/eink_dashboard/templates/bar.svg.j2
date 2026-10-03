@@ -20,6 +20,7 @@
   font-family="Roboto"
   font-size="{{ value_font_sz }}"
   font-weight="{{ 'bold' if value_bold else '500' }}"
+  text-anchor="{{ value_anchor }}"
   dominant-baseline="central"
   fill="{{ hex_gray if value_is_zero else hex_black }}">{{ value_text }}</text>
 {%- endif -%}

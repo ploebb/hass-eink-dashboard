@@ -178,6 +178,48 @@ class TestRenderBar:
         assert_has_dark_pixels(img, 304, 25, 380, 46, threshold=100)
         assert_all_white(img, 381, 0, 800, 100)
 
+    # ── Inside value text ──────────────────────────────────────────────
+
+    def _inside_ctx(self, value: str, **overrides: object) -> dict:
+        """Return the bar context with ``value_position="inside"``."""
+        widget = self._base_widget(value_position="inside", **overrides)
+        return _build_bar_context(widget, self._config(value))
+
+    def test_inside_uses_full_width_track(self) -> None:
+        ctx = self._inside_ctx("0")
+        assert ctx["track_w"] == 380
+
+    def test_inside_positive_text_left_of_tick(self) -> None:
+        ctx = self._inside_ctx("200")
+        assert ctx["value_anchor"] == "end"
+        assert ctx["value_x"] < ctx["zero_x"]
+
+    def test_inside_negative_text_right_of_tick(self) -> None:
+        ctx = self._inside_ctx("-200")
+        assert ctx["value_anchor"] == "start"
+        assert ctx["value_x"] > ctx["zero_x"]
+
+    def test_inside_text_is_smaller_and_not_bold_by_default(self) -> None:
+        outside = _build_bar_context(self._base_widget(), self._config("0"))
+        ctx = self._inside_ctx("0")
+        assert ctx["value_font_sz"] < outside["value_font_sz"]
+        assert not ctx["value_bold"]
+        assert ctx["value_bold"] is not outside["value_bold"]
+
+    def test_inside_bold_can_be_forced(self) -> None:
+        assert self._inside_ctx("0", bold_value=True)["value_bold"]
+
+    def test_inside_text_stays_clear_of_tick(self) -> None:
+        for value in ("400", "-400"):
+            ctx = self._inside_ctx(value)
+            gap = abs(ctx["value_x"] - ctx["zero_x"])
+            assert gap > ctx["tick_w"] / 2
+
+    def test_default_position_unchanged(self) -> None:
+        ctx = _build_bar_context(self._base_widget(), self._config("0"))
+        assert ctx["value_anchor"] == "start"
+        assert ctx["track_w"] < 380
+
     # ── Display levels ─────────────────────────────────────────────────
 
     def test_track_gray_default_and_override(self) -> None:
