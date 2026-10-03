@@ -1222,6 +1222,50 @@ export interface GraphWidget extends WidgetBase {
   bold_value?: boolean;
 }
 
+/**
+ * Zero-centred bar for signed readings such as grid power.  The black
+ * fill grows right for positive and left for negative values inside a
+ * light-gray outlined track.
+ */
+export interface BarWidget extends WidgetBase {
+  type: "bar";
+  /** HA entity ID of the signed reading. */
+  entity: string;
+  /** HA attribute name to use instead of the entity state. */
+  attribute?: string;
+  /** Value at the left end of the track. Default: -100. */
+  min?: number;
+  /** Value at the right end of the track. Default: 100. */
+  max?: number;
+  /** Unit string override. Falls back to the entity's unit. */
+  unit?: string;
+  /** Show the unit next to the value. Default: ``true``. */
+  show_unit?: boolean;
+  /** Show the value text. Default: ``true``. */
+  show_value?: boolean;
+  /** Prefix positive values with ``+``. Default: ``true``. */
+  show_sign?: boolean;
+  /** Number of decimal places for the value. Default: 0. */
+  decimals?: number;
+  /**
+   * Where the value text is drawn.
+   * - ``"outside"`` — right of the track (default).
+   * - ``"inside"`` — in the empty half of the track, next to zero.
+   */
+  value_position?: "outside" | "inside";
+  /** MDI icon drawn for positive values, e.g. a grid icon. */
+  icon_positive?: string;
+  /** MDI icon drawn for negative values, e.g. a solar icon. */
+  icon_negative?: string;
+  /** Bold value text. Default: bold outside, regular inside. */
+  bold_value?: boolean;
+  /**
+   * Corner radius of track and fill in pixels, limited to half the
+   * track height.  Default: fully rounded ends.
+   */
+  corner_radius?: number;
+}
+
 /** Hourly temperature curve with forecast icons and day markers. */
 export interface MeteogramWidget extends WidgetBase {
   type: "meteogram";
@@ -1250,6 +1294,7 @@ export type Widget =
   | EntityWidget
   | SensorWidget
   | GaugeWidget
+  | BarWidget
   | GraphWidget
   | MeteogramWidget;
 

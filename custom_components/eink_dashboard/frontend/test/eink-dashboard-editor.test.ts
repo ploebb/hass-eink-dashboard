@@ -73,9 +73,10 @@ describe("WIDGET_TYPES", () => {
     "gauge",
     "graph",
     "meteogram",
+    "bar",
   ];
 
-  it("has all 14 widget types", () => {
+  it("has all 15 widget types", () => {
     expect(Object.keys(WIDGET_TYPES).sort()).toEqual(
       ALL_TYPES.sort()
     );
@@ -133,9 +134,10 @@ describe("SCHEMAS", () => {
     "gauge",
     "graph",
     "meteogram",
+    "bar",
   ];
 
-  it("has a schema builder for all 14 widget types", () => {
+  it("has a schema builder for all 15 widget types", () => {
     expect(Object.keys(SCHEMAS).sort()).toEqual(ALL_TYPES.sort());
   });
 
@@ -201,6 +203,52 @@ describe("SCHEMAS", () => {
     expect(field?.selector).toHaveProperty("boolean");
   });
 
+  it("bar exposes its options in a content and appearance section", () => {
+    const fields = flattenFields(SCHEMAS.bar(DISPLAY));
+    for (const name of [
+      "entity", "attribute", "min", "max", "unit", "show_unit",
+      "show_value", "show_sign", "decimals", "value_position",
+      "icon_positive", "icon_negative", "corner_radius",
+      "x", "y", "w", "h",
+    ]) {
+      expect(fields).toContain(name);
+    }
+  });
+
+  it("bar entity field is required and unfiltered", () => {
+    const entityField = findField(SCHEMAS.bar(DISPLAY), "entity");
+    expect(entityField?.required).toBe(true);
+    expect(entityField?.selector?.entity).toEqual({});
+  });
+
+  it("bar value_position offers outside and inside, defaulting to outside", () => {
+    const field = findField(SCHEMAS.bar(DISPLAY), "value_position");
+    expect(field?.default).toBe("outside");
+    const options = (field?.selector?.select as {
+      options: { value: string }[];
+    }).options.map((o) => o.value);
+    expect(options).toEqual(["outside", "inside"]);
+  });
+
+  it("bar icon fields use the icon selector", () => {
+    for (const name of ["icon_positive", "icon_negative"]) {
+      const field = findField(SCHEMAS.bar(DISPLAY), name);
+      expect(field?.selector).toHaveProperty("icon");
+    }
+  });
+
+  it("bar corner_radius has no default so the backend rounds fully", () => {
+    const field = findField(SCHEMAS.bar(DISPLAY), "corner_radius");
+    expect(field?.default).toBeUndefined();
+    expect(field?.selector?.number).toMatchObject({ min: 0 });
+  });
+
+  it("bar min and max default to the backend range", () => {
+    const schema = SCHEMAS.bar(DISPLAY);
+    expect(findField(schema, "min")?.default).toBe(-100);
+    expect(findField(schema, "max")?.default).toBe(100);
+  });
+
   it("weather mode field offers full, forecast, and current options", () => {
     const schema = SCHEMAS.weather(DISPLAY);
     const field = findField(schema, "mode");
@@ -230,6 +278,16 @@ describe("LABELS", () => {
     for (const name of ["direction", "style", "length"]) {
       expect(LABELS).toHaveProperty(name);
       expect(typeof LABELS[name]).toBe("string");
+      expect((LABELS[name] as string).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("covers bar-specific field names", () => {
+    for (const name of [
+      "show_value", "show_sign", "value_position",
+      "icon_positive", "icon_negative", "corner_radius",
+    ]) {
+      expect(LABELS).toHaveProperty(name);
       expect((LABELS[name] as string).length).toBeGreaterThan(0);
     }
   });
@@ -373,6 +431,21 @@ describe("getSummary", () => {
     expect(
       getSummary({ type: "graph", entity_2: "sensor.humidity" })
     ).toBe("sensor.humidity");
+  });
+
+  it("returns entity for bar widget", () => {
+    expect(
+      getSummary({ type: "bar", entity: "sensor.power" })
+    ).toBe("sensor.power");
+  });
+
+  it("returns '(no entity)' for bar widget with no entity", () => {
+    expect(getSummary({ type: "bar", entity: "" })).toBe("(no entity)");
+  });
+
+  it("bar defaults write a valid inside-value bar", () => {
+    const d = WIDGET_TYPES.bar.defaults;
+    expect(d).toMatchObject({ type: "bar", value_position: "inside" });
   });
 
   it("returns entity for meteogram widget", () => {
