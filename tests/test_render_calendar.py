@@ -682,7 +682,7 @@ class TestRenderCalendar:
         with patch(_PATCH_NOW, wraps=dt.date) as mock_dt:
             mock_dt.today.return_value = _TODAY
             svg = render_widget_svg(w, self._config())
-        # Gray fill hex (#787878) must appear — used as icon_fill
+        # Gray fill hex must appear — used as icon_fill
         # on the filled-circle path in _macros.svg.j2.
         assert color_to_hex(COLOR_GRAY) in svg
 

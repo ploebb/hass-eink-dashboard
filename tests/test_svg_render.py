@@ -21,6 +21,7 @@ import pytest
 import resvg_py
 from PIL import Image
 
+from custom_components.eink_dashboard.const import COLOR_GRAY
 from custom_components.eink_dashboard.svg_render import (
     _TEMPLATE_DIR,
     _jinja_env,
@@ -264,7 +265,7 @@ def test_card_container_border_draws_rounded_rect(render_macro) -> None:
         + _SVG_OPEN
         + "{% call card_container("
         "x=10, y=10, w=380, h=180,"
-        " border_color='#000000', bar_color='#787878',"
+        " border_color='#000000', bar_color='#555555',"
         " card_style='border',"
         " radius=12, border=3) %}"
         "{% endcall %}" + _SVG_CLOSE
@@ -291,7 +292,7 @@ def test_card_container_left_bar_draws_gray(render_macro) -> None:
         + _SVG_OPEN
         + "{% call card_container("
         "x=10, y=10, w=380, h=180,"
-        " border_color='#000000', bar_color='#787878',"
+        " border_color='#000000', bar_color='#555555',"
         " card_style='left_bar',"
         " bar_width=6) %}"
         "{% endcall %}" + _SVG_CLOSE
@@ -313,7 +314,7 @@ def test_card_container_left_bar_precomputed_width(
         + _SVG_OPEN
         + "{% call card_container("
         "x=10, y=10, w=380, h=180,"
-        " border_color='#000000', bar_color='#787878',"
+        " border_color='#000000', bar_color='#555555',"
         " card_style='left_bar',"
         " bar_width=12) %}"
         "{% endcall %}" + _SVG_CLOSE
@@ -336,7 +337,7 @@ def test_card_container_none_caller_invoked(render_macro) -> None:
         + _SVG_OPEN
         + "{% call card_container("
         "x=10, y=10, w=380, h=180,"
-        " border_color='#000000', bar_color='#787878',"
+        " border_color='#000000', bar_color='#555555',"
         " card_style='none') %}"
         "<rect x='150' y='90' width='30' height='20' fill='black'/>"
         "{% endcall %}" + _SVG_CLOSE
@@ -360,8 +361,8 @@ def test_card_row_icon_circle_and_primary(render_macro) -> None:
         "x=10, y=10, w=380, row_h=56,"
         " padding=12, icon_dia=36, inner_gap=12, border=2,"
         " font_primary=18, font_secondary=14,"
-        " icon_fill='#787878', primary_fill='#000000',"
-        " secondary_fill='#787878', value_fill='#787878',"
+        " icon_fill='#555555', primary_fill='#000000',"
+        " secondary_fill='#555555', value_fill='#555555',"
         " hex_black='#000000', hex_white='#ffffff',"
         " icon_inner=21,"
         " primary='Temperature', letter='T') }}" + _SVG_CLOSE
@@ -383,8 +384,8 @@ def test_card_row_secondary_and_value(render_macro) -> None:
         "x=10, y=10, w=380, row_h=80,"
         " padding=12, icon_dia=36, inner_gap=12, border=2,"
         " font_primary=20, font_secondary=15,"
-        " icon_fill='#787878', primary_fill='#000000',"
-        " secondary_fill='#787878', value_fill='#787878',"
+        " icon_fill='#555555', primary_fill='#000000',"
+        " secondary_fill='#555555', value_fill='#555555',"
         " hex_black='#000000', hex_white='#ffffff',"
         " icon_inner=21,"
         " primary='Sensor', secondary='23 °C',"
@@ -410,8 +411,8 @@ def test_card_row_icon_svg_renders(render_macro) -> None:
         "x=10, y=10, w=380, row_h=56,"
         " padding=12, icon_dia=36, inner_gap=12, border=2,"
         " font_primary=18, font_secondary=14,"
-        " icon_fill='#787878', primary_fill='#000000',"
-        " secondary_fill='#787878', value_fill='#787878',"
+        " icon_fill='#555555', primary_fill='#000000',"
+        " secondary_fill='#555555', value_fill='#555555',"
         " hex_black='#000000', hex_white='#ffffff',"
         " icon_inner=21,"
         " primary='Temp', icon_svg=icon_svg) }}" + _SVG_CLOSE,
@@ -498,6 +499,6 @@ def test_chip_with_active_icon_fills_circle(render_macro) -> None:
         icon_cy - 1,
         probe_x + 2,
         icon_cy + 1,
-        low=100,
-        high=160,
+        low=COLOR_GRAY - 20,
+        high=COLOR_GRAY + 20,
     )

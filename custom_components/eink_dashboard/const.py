@@ -46,9 +46,13 @@ PADDING = 24
 
 COLOR_BLACK = 0
 COLOR_WHITE = 255
-COLOR_GRAY = 120
-COLOR_MEDIUM_GRAY = 150
-COLOR_LIGHT_GRAY = 180
+# Grays are chosen to be exact quantisation levels of the 4- and
+# 16-level grayscale displays (0/85/170/255 and multiples of 17).  A
+# gray between two levels is dithered into a stipple by the e-ink
+# optimiser; a gray that is exactly a level stays flat.
+COLOR_GRAY = 85
+COLOR_MEDIUM_GRAY = 170
+COLOR_LIGHT_GRAY = 170
 
 
 def color_to_hex(c: int) -> str:
