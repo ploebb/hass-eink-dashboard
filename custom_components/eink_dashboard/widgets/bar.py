@@ -32,6 +32,8 @@ _INSIDE_FONT_RATIO = 0.6
 # Clearance between inside text and the zero tick, as a fraction of
 # the track height.
 _INSIDE_PAD_RATIO = 0.3
+# Outline stroke width as a fraction of the track height (min 2 px).
+_OUTLINE_RATIO = 0.09
 # A non-zero value never fills less than this many track heights,
 # so tiny readings stay visible.
 _MIN_FILL_RATIO = 0.75
@@ -105,6 +107,11 @@ def _build_bar_context(
             track, left of the zero tick for positive values and
             right of it for negative ones, so it never overlaps the
             fill; default ``"outside"``),
+            ``track_style`` (``"filled"`` draws the track as a solid
+            light-gray bar; ``"outline"`` draws only a thin light-gray
+            outline, which stays solid on few-level panels where a
+            lighter fill is dithered into a pattern; default
+            ``"filled"``),
             ``bold_value`` (bold value text; default ``True`` outside
             the track and ``False`` inside),
             ``track_gray`` (track gray, 0-255; default the standard
@@ -133,6 +140,7 @@ def _build_bar_context(
     show_value: bool = bool(widget.get("show_value", True))
     show_sign: bool = bool(widget.get("show_sign", True))
     decimals = int(widget.get("decimals", 0))
+    outline: bool = widget.get("track_style", "filled") == "outline"
     inside: bool = widget.get("value_position", "outside") == "inside"
     value_bold: bool = bool(widget.get("bold_value", not inside))
     track_gray = widget.get("track_gray")
@@ -223,6 +231,8 @@ def _build_bar_context(
         "track_w": track_w,
         "track_h": track_h,
         "track_r": track_h / 2,
+        "outline": outline,
+        "outline_w": max(2, round(track_h * _OUTLINE_RATIO)),
         "zero_x": zero_x,
         "tick_w": tick_w,
         "tick_top": 0,

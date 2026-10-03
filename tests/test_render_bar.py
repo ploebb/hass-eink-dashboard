@@ -215,6 +215,19 @@ class TestRenderBar:
             gap = abs(ctx["value_x"] - ctx["zero_x"])
             assert gap > ctx["tick_w"] / 2
 
+    def test_outline_track_is_hollow_and_solid(self) -> None:
+        img = render_to_image(
+            [self._base_widget(track_style="outline")], self._config("0")
+        )
+        # Inside the outline stays white; the stroke is a display level.
+        assert img.getpixel((60, 35)) == 255
+        assert img.getpixel((1, 35)) not in (0, 255)
+        assert img.getpixel((60, 24)) not in (0, 255)
+
+    def test_outline_default_is_filled(self) -> None:
+        ctx = _build_bar_context(self._base_widget(), self._config("0"))
+        assert not ctx["outline"]
+
     def test_default_position_unchanged(self) -> None:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert ctx["value_anchor"] == "start"
