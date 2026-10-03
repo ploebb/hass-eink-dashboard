@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   non-bold font. `icon_positive` / `icon_negative` draw an MDI icon
   at the outer end of the empty half (for example a grid icon for
   import and a solar icon for feed-in); icons scale with the text.
+  `corner_radius` (pixels) sets the corner radius of track and fill;
+  the default is fully rounded ends.
 - **Hinted text rendering**: display settings `hinted_text`,
   `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
   Text is drawn by Pillow with FreeType hinting and no

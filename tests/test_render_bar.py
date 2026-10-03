@@ -14,10 +14,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
 from custom_components.eink_dashboard.svg_render import render_widget_svg
-from custom_components.eink_dashboard.widgets import _build_bar_context, bar
+from custom_components.eink_dashboard.widgets import _build_bar_context
 from custom_components.eink_dashboard.widgets.bar import _fill_path
 from tests.helpers import (
     assert_all_white,
@@ -25,9 +25,6 @@ from tests.helpers import (
     make_config,
     render_to_image,
 )
-
-if TYPE_CHECKING:
-    import pytest
 
 
 def _states(value: str, unit: str = "W") -> dict[str, Any]:
@@ -174,13 +171,25 @@ class TestRenderBar:
         assert "A 11 11" in path
         assert "V 19" in path
 
-    def test_radius_hook_changes_track_and_fill(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setattr(bar, "_track_radius", lambda track_h: 11)
-        ctx = _build_bar_context(self._base_widget(), self._config("400"))
+    def test_corner_radius_option_changes_track_and_fill(self) -> None:
+        ctx = _build_bar_context(
+            self._base_widget(corner_radius=11), self._config("400")
+        )
         assert ctx["track_r"] == 11
         assert "A 11 11" in str(ctx["fill_path"])
+        assert "V 19" in str(ctx["fill_path"])
+
+    def test_corner_radius_is_limited_to_half_the_height(self) -> None:
+        ctx = _build_bar_context(
+            self._base_widget(corner_radius=99), self._config("400")
+        )
+        assert ctx["track_r"] == 15
+
+    def test_zero_corner_radius_is_square(self) -> None:
+        ctx = _build_bar_context(
+            self._base_widget(corner_radius=0), self._config("400")
+        )
+        assert ctx["track_r"] == 0
 
     # ── Inside value ───────────────────────────────────────────────────
 

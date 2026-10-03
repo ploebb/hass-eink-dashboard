@@ -51,18 +51,6 @@ _ICON_RATIO = 1.2
 _MIN_FILL_RATIO = 0.55
 
 
-def _track_radius(track_h: float) -> float:
-    """Return the corner radius of the track and fill.
-
-    Args:
-        track_h: Track height in pixels.
-
-    Returns:
-        Fully rounded ends (half the track height).
-    """
-    return track_h / 2
-
-
 def _fill_path(
     zero_x: float,
     top: float,
@@ -143,6 +131,10 @@ def _build_bar_context(
             nothing is drawn at zero; default none),
             ``bold_value`` (bold value text; default ``True`` outside
             the track and ``False`` inside),
+            ``corner_radius`` (corner radius of track and fill in
+            pixels, limited to half the track height; default fully
+            rounded ends.  The tiles use 11 px at their standard
+            height),
             ``x``, ``w``, ``h``.
         config: Display config with ``width`` and ``states``.
 
@@ -189,7 +181,9 @@ def _build_bar_context(
     # --- Geometry ---
     track_h = max(2, h)
     track_top = 0
-    radius = _track_radius(track_h)
+    radius = track_h / 2
+    if widget.get("corner_radius") is not None:
+        radius = min(radius, max(0.0, float(widget["corner_radius"])))
     font_sz = max(
         8, round(track_h * (_INSIDE_FONT_RATIO if inside else _FONT_RATIO))
     )
