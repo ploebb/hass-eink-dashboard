@@ -146,9 +146,15 @@
           "update_interval": "Update interval (seconds)",
           "optimize": "E-ink optimization",
           "display_levels": "Display levels",
-          "use_system_fonts": "Use system fonts"
+          "use_system_fonts": "Use system fonts",
+          "hinted_text": "Hinted text rendering",
+          "font_family": "Font",
+          "text_size_delta": "Text size adjustment (px)"
         },
         "data_description": {
+          "hinted_text": "Draw text with FreeType hinting and no anti-aliasing instead of resvg. Much crisper on low-resolution e-ink panels. Text that the chosen font cannot show still falls back to the previous renderer.",
+          "font_family": "Font used when hinted text rendering is on",
+          "text_size_delta": "Pixels added to every font size when hinted text rendering is on (negative values shrink the text)",
           "optimize": "Apply autocontrast and quantization for e-ink displays",
           "display_levels": "Number of shades or colors the display can reproduce (fewer = higher contrast, more banding)",
           "use_system_fonts": "Also use fonts already installed on this Home Assistant host as a fallback for characters the bundled font and custom font directory do not cover. Off by default so dashboards render identically across HA OS, Docker, and other machines; enabling it can make text look different depending on what is installed on the host."
@@ -199,6 +205,13 @@
     }
   },
   "selector": {
+    "font_family": {
+      "options": {
+        "roboto": "Roboto",
+        "dejavu": "DejaVu Sans",
+        "ubuntu": "Ubuntu"
+      }
+    },
     "display_levels": {
       "options": {
         "2": "2",

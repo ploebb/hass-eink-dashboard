@@ -66,6 +66,7 @@ from .const import (
 )
 from .push import async_push_image
 from .render import render_dashboard
+from .text_render import DEFAULT_FONT_FAMILY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -268,6 +269,15 @@ class EinkDashboardImage(ImageEntity):
                     "font_dir": self._entry.options.get("font_dir", ""),
                     "use_system_fonts": self._entry.options.get(
                         "use_system_fonts", DEFAULT_USE_SYSTEM_FONTS
+                    ),
+                    "hinted_text": self._entry.options.get(
+                        "hinted_text", False
+                    ),
+                    "font_family": self._entry.options.get(
+                        "font_family", DEFAULT_FONT_FAMILY
+                    ),
+                    "text_size_delta": self._entry.options.get(
+                        "text_size_delta", 0
                     ),
                     "number_format": number_format,
                     "language": language,

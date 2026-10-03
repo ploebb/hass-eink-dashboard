@@ -52,6 +52,16 @@ from .svg_render import (
     _svg_to_png,
     render_widget_svg,
 )
+from .text_render import (
+    TextItem,
+    draw_text,
+    get_style,
+    hinted_font,
+    reset_style,
+    set_style,
+    split_text,
+    style_from_config,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,8 +82,16 @@ def _load_font(
 
     Returns:
         A FreeTypeFont loaded from the TTF file, or the PIL built-in
-        default font if the TTF is not found.
+        default font if the TTF is not found.  While a hinted text
+        style is active (see ``text_render``) the configured family
+        and size delta apply, so width measurements match the drawn
+        text.
     """
+    style = get_style()
+    if style.hinted:
+        return hinted_font(
+            style.family, max(1, size + style.size_delta), medium, bold
+        )
     return _load_font_cached(max(1, size), medium, bold)
 
 
@@ -838,6 +856,30 @@ def render_dashboard(
 ) -> bytes:
     """Render widgets to PNG bytes for e-ink display.
 
+    Activates the text style from ``config`` (``hinted_text``,
+    ``font_family``, ``text_size_delta``; see ``text_render``) for the
+    duration of the render, then delegates to ``_render_dashboard``.
+
+    Args:
+        widget_list: Widget configuration dicts.
+        config: Display config, see ``_render_dashboard``.
+
+    Returns:
+        PNG image bytes ready for delivery to the e-ink display.
+    """
+    token = set_style(style_from_config(config))
+    try:
+        return _render_dashboard(widget_list, config)
+    finally:
+        reset_style(token)
+
+
+def _render_dashboard(
+    widget_list: list[Widget],
+    config: DisplayConfig,
+) -> bytes:
+    """Render widgets to PNG bytes for e-ink display.
+
     Rasterises each widget SVG individually at its intrinsic size,
     pastes the results onto a white canvas, then applies rotation
     and e-ink optimisation.  Per-widget rasterisation is ~3x faster
@@ -857,6 +899,7 @@ def render_dashboard(
         PNG image bytes ready for delivery to the e-ink display.
     """
     config = {"width": 600, "height": 800, **config}
+    style = get_style()
     w = config["width"]
     h = config["height"]
 
@@ -907,6 +950,9 @@ def render_dashboard(
             wy,
         )
         svg = render_widget_svg(widget, config)
+        text_items: list[TextItem] = []
+        if style.hinted:
+            svg, text_items = split_text(svg, style)
         png = _svg_to_png(
             svg,
             extra_font_dirs=extra_font_dirs,
@@ -925,6 +971,8 @@ def render_dashboard(
                 wimg.mode,
             )
         img.paste(wimg.convert(canvas_mode), (wx, wy), mask)
+        if text_items:
+            draw_text(img, text_items, style, (wx, wy))
 
     extrema = img.convert("L").getextrema()
     _LOGGER.debug(

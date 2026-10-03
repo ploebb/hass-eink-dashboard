@@ -268,3 +268,4 @@ Weather icons from [erikflowers/weather-icons](https://github.com/erikflowers/we
 licensed under SIL Open Font License 1.1.
 
 Roboto font by Google, licensed under Apache 2.0.
+DejaVu Sans is public domain / Bitstream Vera licensed; Ubuntu font is under the Ubuntu Font Licence 1.0 (see `fonts/`).

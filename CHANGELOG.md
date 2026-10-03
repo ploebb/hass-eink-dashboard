@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and rounded at the outer end, with the value as text next to the
   track. Options: `min`, `max`, `unit`, `show_unit`, `show_value`,
   `show_sign`, `decimals`, `attribute`, `bold_value`, `track_gray`.
+- **Hinted text rendering**: display settings `hinted_text`,
+  `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
+  Text is drawn by Pillow with FreeType hinting and no
+  anti-aliasing instead of by resvg, which is much crisper on
+  low-resolution panels with few gray levels. Text with glyphs the
+  chosen font lacks falls back to resvg. Off by default.
 
 ## [0.8.0] - 2026-09-30
 

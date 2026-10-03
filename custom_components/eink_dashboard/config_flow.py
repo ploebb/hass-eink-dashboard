@@ -71,6 +71,7 @@ from .const import (
     apply_screen_portion,
     resolve_display,
 )
+from .text_render import DEFAULT_FONT_FAMILY, FONT_FAMILIES
 
 _POSITIVE_INT = vol.All(int, vol.Range(min=1))
 
@@ -1236,6 +1237,29 @@ class EinkDashboardOptionsFlow(OptionsFlow):
                 "use_system_fonts",
                 default=opts.get("use_system_fonts", DEFAULT_USE_SYSTEM_FONTS),
             ): bool,
+            vol.Optional(
+                "hinted_text",
+                default=opts.get("hinted_text", False),
+            ): bool,
+            vol.Optional(
+                "font_family",
+                default=opts.get("font_family", DEFAULT_FONT_FAMILY),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=list(FONT_FAMILIES),
+                    translation_key="font_family",
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Optional(
+                "text_size_delta",
+                default=str(opts.get("text_size_delta", 0)),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=[str(n) for n in range(-3, 6)],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
             # font_dir lives in the Advanced section (built below) since
             # it is a power-user field; the section itself is always
             # present so font support does not depend on optimize.
@@ -1255,6 +1279,7 @@ class EinkDashboardOptionsFlow(OptionsFlow):
         if user_input is not None:
             validated = schema(user_input)
             validated["display_levels"] = int(validated["display_levels"])
+            validated["text_size_delta"] = int(validated["text_size_delta"])
             section = validated.get("advanced_section", {})
             font_dir = section.get("font_dir", "")
             if font_dir and not await self.hass.async_add_executor_job(

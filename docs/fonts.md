@@ -57,3 +57,14 @@ default).
   the quick option → **Use system fonts**.
 - Both can be enabled together; fonts from both sources are loaded
   and resvg picks whichever one covers a given character.
+
+## Hinted text rendering
+
+Display settings can switch text to FreeType-hinted rendering
+(`hinted_text`), choose the bundled font (`font_family`: `roboto`,
+`dejavu` or `ubuntu`) and add pixels to every font size
+(`text_size_delta`). Glyph edges are solid (no anti-aliasing), which
+keeps text clean on panels with four or fewer gray levels. Characters
+missing from the chosen font are still drawn by resvg using the
+fallback fonts described above. A wider font or larger delta can make
+text overflow its widget; text is not clipped at the widget edge.
