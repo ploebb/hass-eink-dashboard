@@ -251,6 +251,39 @@ class TestRenderBar:
         svg = render_widget_svg(widget, self._config("200"))
         assert ">Bezug</text>" in svg
 
+    def test_icon_follows_sign_of_value(self) -> None:
+        kw = {
+            "icon_positive": "mdi:transmission-tower",
+            "icon_negative": "mdi:solar-panel",
+        }
+        pos = self._inside_ctx("200", **kw)
+        neg = self._inside_ctx("-200", **kw)
+        assert pos["icon_svg"]
+        assert neg["icon_svg"]
+        assert pos["icon_svg"] != neg["icon_svg"]
+        assert pos["icon_x"] < pos["zero_x"] < neg["icon_x"]
+
+    def test_icon_absent_at_zero_and_when_unset(self) -> None:
+        kw = {"icon_positive": "mdi:transmission-tower"}
+        assert not self._inside_ctx("0", **kw)["icon_svg"]
+        assert not self._inside_ctx("200")["icon_svg"]
+        assert not self._inside_ctx("-200", **kw)["icon_svg"]
+
+    def test_icon_replaces_name_for_its_sign(self) -> None:
+        ctx = self._inside_ctx(
+            "200", name="Bezug", icon_positive="transmission-tower"
+        )
+        assert ctx["icon_svg"]
+        assert ctx["name_text"] == ""
+        other = self._inside_ctx(
+            "-200", name="Bezug", icon_positive="transmission-tower"
+        )
+        assert other["name_text"] == "Bezug"
+
+    def test_unknown_icon_is_ignored(self) -> None:
+        ctx = self._inside_ctx("200", icon_positive="mdi:no-such-icon-xyz")
+        assert not ctx["icon_svg"]
+
     def test_default_position_unchanged(self) -> None:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert ctx["value_anchor"] == "start"

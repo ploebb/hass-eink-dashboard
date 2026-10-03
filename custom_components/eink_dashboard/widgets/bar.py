@@ -16,7 +16,10 @@
 
 from __future__ import annotations
 
+import contextlib
+
 from ..const import PADDING, DisplayConfig, Widget, color_to_hex
+from ..svg_render import _mdi_svg_filter
 from ._helpers import _color_context, _fmt, _widget_dim
 
 # Gap between the end of the track and the value text, as a
@@ -40,6 +43,8 @@ _NAME_EDGE_RATIO = 0.6
 # Minimum clearance between the name and the value text, as a fraction
 # of the track height.
 _NAME_VALUE_GAP_RATIO = 0.5
+# Icon size as a fraction of the track height.
+_ICON_RATIO = 0.85
 # A non-zero value never fills less than this many track heights,
 # so tiny readings stay visible.
 _MIN_FILL_RATIO = 0.75
@@ -117,6 +122,11 @@ def _build_bar_context(
             without fill, at the outer end: left-aligned on the left
             half, right-aligned on the right half; dropped when it
             would collide with the value text; default none),
+            ``icon_positive`` / ``icon_negative`` (MDI icon, with or
+            without the ``mdi:`` prefix, drawn like the name for
+            positive or negative values, e.g. a grid icon for import
+            and a solar icon for feed-in; replaces the name for that
+            sign; nothing is drawn at zero; default none),
             ``track_style`` (``"filled"`` draws the track as a solid
             light-gray bar; ``"outline"`` draws only a thin light-gray
             outline, which stays solid on few-level panels where a
@@ -239,10 +249,24 @@ def _build_bar_context(
     edge = round(track_h * _NAME_EDGE_RATIO)
     name_x = track_w - edge if name_right else edge
     name_anchor = "end" if name_right else "start"
-    if name_text:
+    icon_svg: object = ""
+    icon_size = round(track_h * _ICON_RATIO)
+    if value is not None and value != 0:
+        icon_name = widget.get(
+            "icon_negative" if value < 0 else "icon_positive"
+        )
+        if icon_name:
+            icon_name = str(icon_name).removeprefix("mdi:")
+            with contextlib.suppress(FileNotFoundError, ValueError):
+                icon_svg = _mdi_svg_filter(icon_name, icon_size)
+    if icon_svg:
+        name_text = ""
+    if name_text or icon_svg:
         from ..render import _load_font
 
-        name_w = _load_font(font_sz).getlength(name_text)
+        deco_w = (
+            icon_size if icon_svg else _load_font(font_sz).getlength(name_text)
+        )
         value_w_px = (
             _load_font(
                 font_sz, medium=not value_bold, bold=value_bold
@@ -251,13 +275,19 @@ def _build_bar_context(
             else 0
         )
         room = half_w - edge - (tick_w / 2 + pad_inside if inside else 0)
-        if name_w + value_w_px + track_h * _NAME_VALUE_GAP_RATIO > room:
+        if deco_w + value_w_px + track_h * _NAME_VALUE_GAP_RATIO > room:
             name_text = ""
+            icon_svg = ""
+    icon_x = track_w - edge - icon_size if name_right else edge
+    icon_y = track_top + (track_h - icon_size) / 2
 
     return {
         "w": w,
         "h": h,
         "has_entity": True,
+        "icon_svg": icon_svg,
+        "icon_x": icon_x,
+        "icon_y": icon_y,
         "name_text": name_text,
         "name_x": name_x,
         "name_anchor": name_anchor,

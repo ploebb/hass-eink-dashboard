@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `name` draws a title inside the track on the empty side, at the
   outer end (left-aligned on the left half, right-aligned on the
   right half).
+  `icon_positive` / `icon_negative` draw an MDI icon in the same
+  spot for positive or negative values (for example a grid icon for
+  import and a solar icon for feed-in), replacing the name for that
+  sign.
 - **Hinted text rendering**: display settings `hinted_text`,
   `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
   Text is drawn by Pillow with FreeType hinting and no

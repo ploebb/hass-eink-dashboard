@@ -23,6 +23,10 @@
 <rect x="{{ zero_x - tick_w / 2 }}" y="{{ tick_top }}"
   width="{{ tick_w }}" height="{{ tick_h }}"
   fill="{{ hex_black }}"/>
+{%- if icon_svg -%}
+<g transform="translate({{ icon_x }}, {{ icon_y }})"
+  style="color: {{ hex_black }}">{{ icon_svg }}</g>
+{%- endif -%}
 {%- if name_text -%}
 <text
   x="{{ name_x }}" y="{{ value_y }}"
