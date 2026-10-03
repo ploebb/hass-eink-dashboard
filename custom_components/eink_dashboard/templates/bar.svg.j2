@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      width="{{ w }}" height="{{ h }}">
 {%- if has_entity -%}
-{# Track: light gray snapped to a display level, fully rounded. #}
+{# Track: light gray (or track_gray), fully rounded. #}
 <rect x="{{ track_x }}" y="{{ track_top }}"
   width="{{ track_w }}" height="{{ track_h }}"
   rx="{{ track_r }}" ry="{{ track_r }}"
@@ -21,7 +21,7 @@
   font-size="{{ value_font_sz }}"
   font-weight="{{ 'bold' if value_bold else '500' }}"
   dominant-baseline="central"
-  fill="{{ gray_color if value_is_zero else hex_black }}">{{ value_text }}</text>
+  fill="{{ hex_gray if value_is_zero else hex_black }}">{{ value_text }}</text>
 {%- endif -%}
 {%- endif -%}
 </svg>

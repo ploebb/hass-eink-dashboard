@@ -180,39 +180,26 @@ class TestRenderBar:
 
     # ── Display levels ─────────────────────────────────────────────────
 
-    def test_track_color_snaps_to_display_level(self) -> None:
-        ctx4 = _build_bar_context(
-            self._base_widget(), self._config("0", display_levels=4)
+    def test_track_gray_default_and_override(self) -> None:
+        default = _build_bar_context(self._base_widget(), self._config("0"))
+        assert default["track_color"] == "#aaaaaa"
+        light = _build_bar_context(
+            self._base_widget(track_gray=212), self._config("0")
         )
-        ctx16 = _build_bar_context(
-            self._base_widget(), self._config("0", display_levels=16)
-        )
-        ctx2 = _build_bar_context(
-            self._base_widget(), self._config("0", display_levels=2)
-        )
-        assert ctx4["track_color"] == "#aaaaaa"
-        assert ctx16["track_color"] == "#bbbbbb"
-        # Two levels have no gray to snap to: unchanged.
-        assert ctx2["track_color"] == "#b4b4b4"
+        assert light["track_color"] == "#d4d4d4"
 
     def test_track_is_flat_after_dithering(self) -> None:
         # With the optimiser on, an off-level gray would be dithered
-        # into a stipple; the snapped track must stay one flat tone.
+        # into a stipple; the default track is a display level and must
+        # stay one flat tone.
         cfg = self._config("289", width=800, display_levels=4, optimize=True)
         img = render_to_image([self._base_widget(x=360)], cfg)
         # Row through the left half of the track (x 364..500, y 35).
         row = {img.getpixel((x, 35)) for x in range(364, 500)}
         assert row == {170}
 
-    def test_zero_text_gray_snaps_to_display_level(self) -> None:
-        ctx4 = _build_bar_context(
-            self._base_widget(), self._config("0", display_levels=4)
-        )
-        assert ctx4["gray_color"] == "#555555"
-
     def test_zero_text_is_not_stippled_after_dithering(self) -> None:
-        # Off-level gray text is dithered into an even mix of the two
-        # neighbouring levels.  With the snapped gray the level itself
+        # The zero-state text gray is a display level, so that level
         # dominates; the rest is antialiasing at the glyph edges.
         cfg = self._config("0", width=800, display_levels=4, optimize=True)
         img = render_to_image([self._base_widget(x=360)], cfg)
@@ -222,3 +209,11 @@ class TestRenderBar:
             for y in range(25, 46)
         ]
         assert pixels.count(85) > 2 * pixels.count(170)
+
+    def test_lighter_track_gray_is_dithered_on_four_levels(self) -> None:
+        # Nothing between level 170 and white is a real level, so a
+        # lighter track must be a mix of exactly those two tones.
+        cfg = self._config("289", width=800, display_levels=4, optimize=True)
+        img = render_to_image([self._base_widget(x=360, track_gray=212)], cfg)
+        row = {img.getpixel((x, 35)) for x in range(364, 500)}
+        assert row == {170, 255}
