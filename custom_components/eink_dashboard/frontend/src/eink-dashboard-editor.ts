@@ -226,6 +226,20 @@ export const WIDGET_TYPES: Record<string, WidgetTypeMeta> = {
       card_style: DEFAULT_CARD_STYLE,
     },
   },
+  bar: {
+    label: "Bar",
+    description: "Signed bar around zero, e.g. grid import and feed-in",
+    icon: "mdi:arrow-left-right",
+    defaults: {
+      type: "bar",
+      x: 24,
+      y: 0,
+      w: 380,
+      h: 34,
+      entity: "",
+      value_position: "inside",
+    },
+  },
   graph: {
     label: "Graph",
     description: "Line or bar graph with up to three overlaid entities",
@@ -1328,6 +1342,101 @@ export const SCHEMAS: Record<
       schema: [cardStyleSelector(), boldValueSelector()],
     },
   ],
+  bar: (d) => [
+    identitySection(),
+    {
+      name: "content",
+      type: "expandable",
+      flatten: true,
+      expanded: true,
+      title: "Content",
+      icon: "mdi:arrow-left-right",
+      schema: [
+        {
+          name: "entity",
+          required: true,
+          selector: { entity: {} },
+        },
+        { name: "attribute", selector: { text: {} } },
+        {
+          type: "grid",
+          name: "",
+          schema: [
+            {
+              name: "min",
+              default: -100,
+              selector: { number: { mode: "box" } },
+            },
+            {
+              name: "max",
+              default: 100,
+              selector: { number: { mode: "box" } },
+            },
+          ],
+        },
+        { name: "unit", selector: { text: {} } },
+        {
+          name: "show_unit",
+          default: true,
+          selector: { boolean: {} },
+        },
+        {
+          name: "show_value",
+          default: true,
+          selector: { boolean: {} },
+        },
+        {
+          name: "show_sign",
+          default: true,
+          selector: { boolean: {} },
+        },
+        {
+          name: "decimals",
+          selector: {
+            number: { min: 0, max: 4, mode: "box" },
+          },
+        },
+      ],
+    },
+    {
+      name: "appearance",
+      type: "expandable",
+      flatten: true,
+      title: "Appearance",
+      icon: "mdi:palette",
+      schema: [
+        {
+          name: "value_position",
+          default: "outside",
+          selector: {
+            select: {
+              mode: "dropdown",
+              options: [
+                { value: "outside", label: "Next to the bar" },
+                { value: "inside", label: "Inside the bar" },
+              ],
+            },
+          },
+        },
+        { name: "icon_positive", selector: { icon: {} } },
+        { name: "icon_negative", selector: { icon: {} } },
+        {
+          name: "corner_radius",
+          selector: {
+            number: { min: 0, max: 40, mode: "box" },
+          },
+        },
+      ],
+    },
+    {
+      name: "layout",
+      type: "expandable",
+      flatten: true,
+      title: "Layout",
+      icon: "mdi:move-resize",
+      schema: [{ type: "grid", name: "", schema: posXYWH(d) }],
+    },
+  ],
   graph: (d) => [
     identitySection(),
     {
@@ -1772,6 +1881,12 @@ export const LABELS: Record<string, string> = {
   hours: "Hours to show",
   show_cloud_cover: "Show cloud cover",
   show_precipitation: "Show precipitation",
+  show_value: "Show value",
+  show_sign: "Show + sign",
+  value_position: "Value position",
+  icon_positive: "Icon for positive values",
+  icon_negative: "Icon for negative values",
+  corner_radius: "Corner radius (empty = fully rounded)",
 };
 
 // ── HA component loader ──────────────────────────────────────────
@@ -1816,7 +1931,7 @@ export function getSummary(widget: Widget): string {
   if (
     t === "weather" || t === "tile" || t === "entity"
     || t === "sensor" || t === "calendar" || t === "gauge"
-    || t === "meteogram"
+    || t === "meteogram" || t === "bar"
   ) {
     return widget.entity || "(no entity)";
   }
