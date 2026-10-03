@@ -434,6 +434,11 @@ export interface WeatherWidget extends WidgetBase {
    * displayed in the humidity detail chip.
    */
   humidity_entity?: string;
+  /**
+   * Show the row of humidity, pressure and wind chips below the
+   * temperature. Defaults to true.
+   */
+  show_details?: boolean;
   /** Decorative frame style. */
   card_style?: CardStyle;
   /**

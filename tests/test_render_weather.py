@@ -209,6 +209,22 @@ class TestRenderWeather:
         assert_has_dark_pixels(img, PADDING + 106, 10, 300, 70)
         assert_has_dark_pixels(img, PADDING, 80, 326, 100)
 
+    def test_weather_show_details_false_hides_row(self) -> None:
+        """show_details=False drops the detail row and its height."""
+        widget = {
+            "type": "weather",
+            "entity": "weather.home",
+            "x": PADDING,
+            "y": 10,
+        }
+        shown = _build_weather_context(widget, self._config())
+        hidden = _build_weather_context(
+            {**widget, "show_details": False}, self._config()
+        )
+        assert shown["detail_items"]
+        assert hidden["detail_items"] == []
+        assert hidden["total_h"] == shown["total_h"] - 22
+
     def test_weather_draws_detail_chips(self) -> None:
         """Detail row shows humidity, pressure, wind, cloud coverage."""
         widgets = [

@@ -340,7 +340,8 @@ def _build_weather_context(
         widget: Widget config dict.  Recognised keys:
             ``entity``, ``x``, ``y``, ``w``, ``font_size``,
             ``forecast_days``, ``card_style``, ``mode``,
-            ``temperature_entity``, ``humidity_entity``.
+            ``temperature_entity``, ``humidity_entity``,
+            ``show_details``.
         config: Display config with ``width``, ``height``,
             ``states``, ``display_levels``.
 
@@ -390,6 +391,7 @@ def _build_weather_context(
     # consistent with card_style's behaviour.
     show_current = mode != "forecast"
     show_forecast_section = mode != "current"
+    show_details = bool(widget.get("show_details", True))
     display_levels = config.get("display_levels", 16)
 
     scale = font_size / FONT_SIZE_WEATHER
@@ -497,7 +499,7 @@ def _build_weather_context(
     else:
         temp_text = f"{_fmt_temp(temp, nf, lang)}{temp_unit}"
     temp_bbox = font_xl.getbbox(temp_text)
-    temp_h = temp_bbox[3] - temp_bbox[1]
+    temp_h = round(temp_bbox[3] - temp_bbox[1])
 
     top_pad = m.padding
 
@@ -513,6 +515,7 @@ def _build_weather_context(
         else 0
     )
     date_h = detail_gap + detail_icon_h if mode == "current" else 0
+    detail_h = detail_gap + detail_icon_h if show_details else 0
     bar_h = sep_gap + bar_height if show_bar else 0
 
     # Total card height, matching PIL's formula exactly.  In
@@ -522,8 +525,7 @@ def _build_weather_context(
     current_h = (
         top_pad
         + max(icon_size, temp_h)
-        + detail_gap
-        + detail_icon_h
+        + detail_h
         + feels_like_h
         + date_h
         + bar_h
@@ -621,25 +623,29 @@ def _build_weather_context(
             cond_icon_svg = ""
 
         detail_y = row1_bottom + detail_gap
-        detail_items = _build_detail_items(
-            humidity,
-            pressure,
-            pressure_unit,
-            wind,
-            wind_unit,
-            cloud_coverage,
-            config,
-            content_left,
-            content_w,
-            detail_y,
-            detail_icon_h,
-            icon_gap,
-            font_sm,
+        detail_items = (
+            _build_detail_items(
+                humidity,
+                pressure,
+                pressure_unit,
+                wind,
+                wind_unit,
+                cloud_coverage,
+                config,
+                content_left,
+                content_w,
+                detail_y,
+                detail_icon_h,
+                icon_gap,
+                font_sm,
+            )
+            if show_details
+            else []
         )
 
     # In "forecast" mode the detail row isn't drawn either, so the
     # forecast section anchors to content_top instead.
-    detail_bottom = detail_y + detail_icon_h if show_current else content_top
+    detail_bottom = row1_bottom + detail_h if show_current else content_top
 
     # Feels-like temperature and locale-aware date string, "current"
     # mode only.  Each gets its own centred line below the detail
