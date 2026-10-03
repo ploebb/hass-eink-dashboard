@@ -43,8 +43,8 @@ _NAME_EDGE_RATIO = 0.6
 # Minimum clearance between the name and the value text, as a fraction
 # of the track height.
 _NAME_VALUE_GAP_RATIO = 0.5
-# Icon size as a fraction of the track height.
-_ICON_RATIO = 0.85
+# Icon size as a multiple of the value font size.
+_ICON_RATIO = 1.2
 # A non-zero value never fills less than this many track heights,
 # so tiny readings stay visible.
 _MIN_FILL_RATIO = 0.75
@@ -263,7 +263,7 @@ def _build_bar_context(
     name_x = track_w - edge if name_right else edge
     name_anchor = "end" if name_right else "start"
     icon_svg: object = ""
-    icon_size = round(track_h * _ICON_RATIO)
+    icon_size = round(font_sz * _ICON_RATIO)
     if value is not None and value != 0:
         icon_name = widget.get(
             "icon_negative" if value < 0 else "icon_positive"

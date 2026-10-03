@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sign.
   `fill_gray`, `tick_gray`, `tick_width` and `font_size` adjust the
   fill and zero-tick colour, the tick width and the text size.
+  Icons scale with the text size.
 - **Hinted text rendering**: display settings `hinted_text`,
   `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
   Text is drawn by Pillow with FreeType hinting and no

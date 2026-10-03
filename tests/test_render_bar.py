@@ -316,6 +316,18 @@ class TestRenderBar:
         )
         assert 60 < img.getpixel((230, 35)) < 120
 
+    def test_icon_size_follows_font_size(self) -> None:
+        def icon_px(font_size: int) -> int:
+            ctx = self._inside_ctx(
+                "200",
+                icon_positive="mdi:transmission-tower",
+                font_size=font_size,
+            )
+            return int(str(ctx["icon_svg"]).split('width="')[1].split('"')[0])
+
+        assert icon_px(12) < icon_px(17) < icon_px(24)
+        assert icon_px(20) == round(20 * 1.2)
+
     def test_default_position_unchanged(self) -> None:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert ctx["value_anchor"] == "start"
