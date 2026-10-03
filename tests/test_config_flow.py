@@ -738,6 +738,26 @@ class TestEinkDashboardOptionsFlow:
         assert result["data"]["width"] == 800
         assert result["data"]["webhook_urls"] == []
 
+    async def test_display_settings_saves_text_options(
+        self, hass: HomeAssistant
+    ) -> None:
+        # text_size_delta is a select (string) and stored as an int.
+        flow = await _make_options_flow(
+            hass, {"width": 800, "height": 480, "update_interval": 60}
+        )
+        result = await flow.async_step_display_settings(
+            {
+                "update_interval": 60,
+                "hinted_text": True,
+                "font_family": "ubuntu",
+                "text_size_delta": "2",
+            }
+        )
+
+        assert result["data"]["hinted_text"] is True
+        assert result["data"]["font_family"] == "ubuntu"
+        assert result["data"]["text_size_delta"] == 2
+
     async def test_display_settings_saves_optimize_values(
         self, hass: HomeAssistant
     ) -> None:
