@@ -45,6 +45,7 @@ import resvg_py
 
 from .const import (
     COLOR_WHITE,
+    DEFAULT_DISPLAY_LEVELS,
     DisplayConfig,
     Widget,
     WidgetType,
@@ -489,6 +490,29 @@ _SVG_RENDERERS: dict[str, SvgContextFn] = {
 }
 
 
+def _text_antialias(config: DisplayConfig) -> bool:
+    """Return whether text should be anti-aliased for this display.
+
+    Anti-aliased glyph edges are intermediate grays.  On displays with
+    four or fewer gray levels the e-ink optimiser dithers those edge
+    pixels into a speckled pattern, so thin text looks patchy.  Without
+    anti-aliasing the glyphs are solid and the display levels stay
+    clean.  An explicit ``text_antialias`` entry in ``config`` wins;
+    otherwise anti-aliasing is on only above four levels.
+
+    Args:
+        config: Display config; reads ``text_antialias`` (bool,
+            optional) and ``display_levels`` (int, default 16).
+
+    Returns:
+        ``True`` to anti-alias text, ``False`` to render it crisp.
+    """
+    explicit = config.get("text_antialias")
+    if explicit is not None:
+        return bool(explicit)
+    return config.get("display_levels", DEFAULT_DISPLAY_LEVELS) > 4
+
+
 def render_widget_svg(
     widget: Widget,
     config: DisplayConfig,
@@ -516,4 +540,9 @@ def render_widget_svg(
     wtype = widget["type"]
     ctx = _SVG_RENDERERS[wtype](widget, config)
     tmpl = _jinja_env.get_template(f"{wtype}.svg.j2")
-    return tmpl.render(**ctx)
+    svg = tmpl.render(**ctx)
+    if not _text_antialias(config):
+        # Inherited by every <text>; resvg skips anti-aliasing for
+        # optimizeSpeed.
+        svg = svg.replace("<svg ", '<svg text-rendering="optimizeSpeed" ', 1)
+    return svg
