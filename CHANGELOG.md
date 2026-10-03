@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for negative ones, in a smaller, non-bold font.
   `track_style: outline` draws only a thin light-gray outline instead
   of a filled track, which stays solid on few-level panels.
+  `name` draws a title inside the track on the empty side, at the
+  outer end (left-aligned on the left half, right-aligned on the
+  right half).
 - **Hinted text rendering**: display settings `hinted_text`,
   `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
   Text is drawn by Pillow with FreeType hinting and no

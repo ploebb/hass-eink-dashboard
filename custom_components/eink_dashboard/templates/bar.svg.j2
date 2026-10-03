@@ -23,6 +23,15 @@
 <rect x="{{ zero_x - tick_w / 2 }}" y="{{ tick_top }}"
   width="{{ tick_w }}" height="{{ tick_h }}"
   fill="{{ hex_black }}"/>
+{%- if name_text -%}
+<text
+  x="{{ name_x }}" y="{{ value_y }}"
+  font-family="Roboto"
+  font-size="{{ value_font_sz }}"
+  text-anchor="{{ name_anchor }}"
+  dominant-baseline="central"
+  fill="{{ hex_black }}">{{ name_text }}</text>
+{%- endif -%}
 {%- if show_value -%}
 <text
   x="{{ value_x }}" y="{{ value_y }}"

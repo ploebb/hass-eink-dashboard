@@ -228,6 +228,29 @@ class TestRenderBar:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert not ctx["outline"]
 
+    def test_name_is_left_aligned_for_positive_values(self) -> None:
+        ctx = self._inside_ctx("200", name="Bezug")
+        assert ctx["name_text"] == "Bezug"
+        assert ctx["name_anchor"] == "start"
+        assert ctx["name_x"] < ctx["zero_x"]
+
+    def test_name_is_right_aligned_for_negative_values(self) -> None:
+        ctx = self._inside_ctx("-200", name="Bezug")
+        assert ctx["name_anchor"] == "end"
+        assert ctx["name_x"] > ctx["zero_x"]
+
+    def test_name_absent_by_default(self) -> None:
+        assert self._inside_ctx("200")["name_text"] == ""
+
+    def test_name_dropped_when_it_would_hit_the_value(self) -> None:
+        ctx = self._inside_ctx("200", name="A very long bar title " * 3)
+        assert ctx["name_text"] == ""
+
+    def test_name_is_drawn_in_the_svg(self) -> None:
+        widget = self._base_widget(value_position="inside", name="Bezug")
+        svg = render_widget_svg(widget, self._config("200"))
+        assert ">Bezug</text>" in svg
+
     def test_default_position_unchanged(self) -> None:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert ctx["value_anchor"] == "start"

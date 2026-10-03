@@ -34,6 +34,12 @@ _INSIDE_FONT_RATIO = 0.6
 _INSIDE_PAD_RATIO = 0.3
 # Outline stroke width as a fraction of the track height (min 2 px).
 _OUTLINE_RATIO = 0.09
+# Clearance between the name and the rounded track end, as a fraction
+# of the track height.
+_NAME_EDGE_RATIO = 0.6
+# Minimum clearance between the name and the value text, as a fraction
+# of the track height.
+_NAME_VALUE_GAP_RATIO = 0.5
 # A non-zero value never fills less than this many track heights,
 # so tiny readings stay visible.
 _MIN_FILL_RATIO = 0.75
@@ -107,6 +113,10 @@ def _build_bar_context(
             track, left of the zero tick for positive values and
             right of it for negative ones, so it never overlaps the
             fill; default ``"outside"``),
+            ``name`` (title drawn inside the track on the side
+            without fill, at the outer end: left-aligned on the left
+            half, right-aligned on the right half; dropped when it
+            would collide with the value text; default none),
             ``track_style`` (``"filled"`` draws the track as a solid
             light-gray bar; ``"outline"`` draws only a thin light-gray
             outline, which stays solid on few-level panels where a
@@ -214,18 +224,43 @@ def _build_bar_context(
     tick_w = max(2, round(track_h * 0.18))
     value_x = track_w + gap
     value_anchor = "start"
+    pad_inside = round(track_h * _INSIDE_PAD_RATIO)
     if inside:
-        pad = round(track_h * _INSIDE_PAD_RATIO)
         if value is not None and value < 0:
-            value_x = zero_x + tick_w / 2 + pad
+            value_x = zero_x + tick_w / 2 + pad_inside
         else:
-            value_x = zero_x - tick_w / 2 - pad
+            value_x = zero_x - tick_w / 2 - pad_inside
             value_anchor = "end"
+
+    # Name: outer end of the empty half, mirrored from the value text.
+    # The empty half is the right one only for negative values.
+    name_text = str(widget.get("name", "") or "")
+    name_right = value is not None and value < 0
+    edge = round(track_h * _NAME_EDGE_RATIO)
+    name_x = track_w - edge if name_right else edge
+    name_anchor = "end" if name_right else "start"
+    if name_text:
+        from ..render import _load_font
+
+        name_w = _load_font(font_sz).getlength(name_text)
+        value_w_px = (
+            _load_font(
+                font_sz, medium=not value_bold, bold=value_bold
+            ).getlength(value_text)
+            if show_value and inside
+            else 0
+        )
+        room = half_w - edge - (tick_w / 2 + pad_inside if inside else 0)
+        if name_w + value_w_px + track_h * _NAME_VALUE_GAP_RATIO > room:
+            name_text = ""
 
     return {
         "w": w,
         "h": h,
         "has_entity": True,
+        "name_text": name_text,
+        "name_x": name_x,
+        "name_anchor": name_anchor,
         "track_x": 0,
         "track_top": track_top,
         "track_w": track_w,
