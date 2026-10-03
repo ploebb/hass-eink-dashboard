@@ -14,16 +14,20 @@
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from custom_components.eink_dashboard.svg_render import render_widget_svg
-from custom_components.eink_dashboard.widgets import _build_bar_context
+from custom_components.eink_dashboard.widgets import _build_bar_context, bar
+from custom_components.eink_dashboard.widgets.bar import _fill_path
 from tests.helpers import (
     assert_all_white,
     assert_has_dark_pixels,
     make_config,
     render_to_image,
 )
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def _states(value: str, unit: str = "W") -> dict[str, Any]:
@@ -67,6 +71,11 @@ class TestRenderBar:
         w.update(overrides)
         return w
 
+    def _inside_ctx(self, value: str, **overrides: object) -> dict:
+        """Return the bar context with ``value_position="inside"``."""
+        widget = self._base_widget(value_position="inside", **overrides)
+        return _build_bar_context(widget, self._config(value))
+
     # ── Context ────────────────────────────────────────────────────────
 
     def test_missing_entity_is_blank(self) -> None:
@@ -82,12 +91,12 @@ class TestRenderBar:
         assert_all_white(img, 0, 20, 380, 50)
 
     def test_geometry_matches_design(self) -> None:
-        # 380x30 -> 288 px track, 22 px tall, tick at the centre.
+        # 380x30 -> 288 px track taking the full widget height.
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert ctx["track_w"] == 288
-        assert ctx["track_h"] == 22
+        assert ctx["track_h"] == 30
         assert ctx["zero_x"] == 144
-        assert ctx["track_top"] == 4
+        assert ctx["track_top"] == 0
 
     def test_zero_has_no_fill_and_gray_text(self) -> None:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
@@ -134,7 +143,7 @@ class TestRenderBar:
 
     def test_tiny_value_has_minimum_fill(self) -> None:
         svg = render_widget_svg(self._base_widget(), self._config("1"))
-        # 0.75 * 22 px = 16.5 px, so the fill ends at 144 + 16.5.
+        # 0.55 * 30 px = 16.5 px, so the fill ends at 144 + 16.5.
         assert "160.5" in svg
 
     def test_negative_fill_grows_left(self) -> None:
@@ -148,53 +157,43 @@ class TestRenderBar:
         )
         assert ctx["track_w"] == 380
 
-    # ── Pixels ─────────────────────────────────────────────────────────
+    def test_no_zero_tick_in_svg(self) -> None:
+        svg = render_widget_svg(self._base_widget(), self._config("250"))
+        assert "<rect" in svg
+        assert svg.count("<rect") == 1  # the track outline only
 
-    # Widget sits at y=20, h=30: track spans y 24..46 (centre 35),
-    # the zero tick is x 142..146 and spans the full widget height.
+    # ── Corner radius ──────────────────────────────────────────────────
 
-    def test_zero_draws_light_track_and_black_tick(self) -> None:
-        img = render_to_image([self._base_widget()], self._config("0"))
-        assert 150 < img.getpixel((60, 35)) < 230
-        assert img.getpixel((144, 35)) < 60
-        # Tick overshoots the track, track itself does not reach it.
-        assert img.getpixel((144, 21)) < 60
-        assert img.getpixel((60, 21)) == 255
+    def test_default_ends_are_fully_rounded(self) -> None:
+        ctx = _build_bar_context(self._base_widget(), self._config("400"))
+        assert ctx["track_r"] == 15
+        assert "V" not in str(ctx["fill_path"])
 
-    def test_positive_fill_is_right_of_centre_only(self) -> None:
-        img = render_to_image([self._base_widget()], self._config("400"))
-        assert img.getpixel((230, 35)) < 60
-        assert 150 < img.getpixel((60, 35)) < 230
+    def test_smaller_radius_gives_straight_fill_sides(self) -> None:
+        path = _fill_path(144, 0, 30, 100, 11, positive=True)
+        assert "A 11 11" in path
+        assert "V 19" in path
 
-    def test_negative_fill_is_left_of_centre_only(self) -> None:
-        img = render_to_image([self._base_widget()], self._config("-400"))
-        assert img.getpixel((60, 35)) < 60
-        assert 150 < img.getpixel((230, 35)) < 230
+    def test_radius_hook_changes_track_and_fill(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(bar, "_track_radius", lambda track_h: 11)
+        ctx = _build_bar_context(self._base_widget(), self._config("400"))
+        assert ctx["track_r"] == 11
+        assert "A 11 11" in str(ctx["fill_path"])
 
-    def test_value_text_stays_inside_widget(self) -> None:
-        img = render_to_image(
-            [self._base_widget()], self._config("-400", width=800)
-        )
-        assert_has_dark_pixels(img, 304, 25, 380, 46, threshold=100)
-        assert_all_white(img, 381, 0, 800, 100)
-
-    # ── Inside value text ──────────────────────────────────────────────
-
-    def _inside_ctx(self, value: str, **overrides: object) -> dict:
-        """Return the bar context with ``value_position="inside"``."""
-        widget = self._base_widget(value_position="inside", **overrides)
-        return _build_bar_context(widget, self._config(value))
+    # ── Inside value ───────────────────────────────────────────────────
 
     def test_inside_uses_full_width_track(self) -> None:
         ctx = self._inside_ctx("0")
         assert ctx["track_w"] == 380
 
-    def test_inside_positive_text_left_of_tick(self) -> None:
+    def test_inside_positive_text_left_of_zero(self) -> None:
         ctx = self._inside_ctx("200")
         assert ctx["value_anchor"] == "end"
         assert ctx["value_x"] < ctx["zero_x"]
 
-    def test_inside_negative_text_right_of_tick(self) -> None:
+    def test_inside_negative_text_right_of_zero(self) -> None:
         ctx = self._inside_ctx("-200")
         assert ctx["value_anchor"] == "start"
         assert ctx["value_x"] > ctx["zero_x"]
@@ -204,57 +203,22 @@ class TestRenderBar:
         ctx = self._inside_ctx("0")
         assert ctx["value_font_sz"] < outside["value_font_sz"]
         assert not ctx["value_bold"]
-        assert ctx["value_bold"] is not outside["value_bold"]
+        assert outside["value_bold"]
 
     def test_inside_bold_can_be_forced(self) -> None:
         assert self._inside_ctx("0", bold_value=True)["value_bold"]
 
-    def test_inside_text_stays_clear_of_tick(self) -> None:
+    def test_inside_text_stays_clear_of_fill(self) -> None:
         for value in ("400", "-400"):
             ctx = self._inside_ctx(value)
-            gap = abs(ctx["value_x"] - ctx["zero_x"])
-            assert gap > ctx["tick_w"] / 2
+            assert abs(ctx["value_x"] - ctx["zero_x"]) > 0
 
-    def test_outline_track_is_hollow_and_solid(self) -> None:
-        img = render_to_image(
-            [self._base_widget(track_style="outline")], self._config("0")
-        )
-        # Inside the outline stays white; the stroke is a display level.
-        assert img.getpixel((60, 35)) == 255
-        assert img.getpixel((1, 35)) not in (0, 255)
-        assert img.getpixel((60, 24)) not in (0, 255)
-
-    def test_outline_default_is_filled(self) -> None:
-        ctx = _build_bar_context(self._base_widget(), self._config("0"))
-        assert not ctx["outline"]
-
-    def test_name_is_left_aligned_for_positive_values(self) -> None:
-        ctx = self._inside_ctx("200", name="Bezug")
-        assert ctx["name_text"] == "Bezug"
-        assert ctx["name_anchor"] == "start"
-        assert ctx["name_x"] < ctx["zero_x"]
-
-    def test_name_is_right_aligned_for_negative_values(self) -> None:
-        ctx = self._inside_ctx("-200", name="Bezug")
-        assert ctx["name_anchor"] == "end"
-        assert ctx["name_x"] > ctx["zero_x"]
-
-    def test_name_absent_by_default(self) -> None:
-        assert self._inside_ctx("200")["name_text"] == ""
-
-    def test_name_dropped_when_it_would_hit_the_value(self) -> None:
-        ctx = self._inside_ctx("200", name="A very long bar title " * 3)
-        assert ctx["name_text"] == ""
-
-    def test_name_is_drawn_in_the_svg(self) -> None:
-        widget = self._base_widget(value_position="inside", name="Bezug")
-        svg = render_widget_svg(widget, self._config("200"))
-        assert ">Bezug</text>" in svg
+    # ── Icons ──────────────────────────────────────────────────────────
 
     def test_icon_follows_sign_of_value(self) -> None:
         kw = {
             "icon_positive": "mdi:transmission-tower",
-            "icon_negative": "mdi:solar-panel",
+            "icon_negative": "mdi:white-balance-sunny",
         }
         pos = self._inside_ctx("200", **kw)
         neg = self._inside_ctx("-200", **kw)
@@ -269,106 +233,83 @@ class TestRenderBar:
         assert not self._inside_ctx("200")["icon_svg"]
         assert not self._inside_ctx("-200", **kw)["icon_svg"]
 
-    def test_icon_replaces_name_for_its_sign(self) -> None:
-        ctx = self._inside_ctx(
-            "200", name="Bezug", icon_positive="transmission-tower"
-        )
-        assert ctx["icon_svg"]
-        assert ctx["name_text"] == ""
-        other = self._inside_ctx(
-            "-200", name="Bezug", icon_positive="transmission-tower"
-        )
-        assert other["name_text"] == "Bezug"
-
     def test_unknown_icon_is_ignored(self) -> None:
         ctx = self._inside_ctx("200", icon_positive="mdi:no-such-icon-xyz")
         assert not ctx["icon_svg"]
 
-    def test_fill_and_tick_default_to_black(self) -> None:
-        ctx = _build_bar_context(self._base_widget(), self._config("0"))
-        assert ctx["fill_color"] == ctx["hex_black"]
-        assert ctx["tick_color"] == ctx["hex_black"]
-
-    def test_fill_and_tick_gray_options(self) -> None:
-        ctx = _build_bar_context(
-            self._base_widget(fill_gray=85, tick_gray=85, tick_width=2),
-            self._config("200"),
-        )
-        assert ctx["fill_color"] == ctx["hex_gray"]
-        assert ctx["tick_color"] == ctx["hex_gray"]
-        assert ctx["tick_w"] == 2
-
-    def test_font_size_option_overrides_derived_size(self) -> None:
-        derived = _build_bar_context(
-            self._base_widget(value_position="inside"), self._config("0")
-        )
-        ctx = _build_bar_context(
-            self._base_widget(value_position="inside", font_size=11),
-            self._config("0"),
-        )
-        assert ctx["value_font_sz"] == 11
-        assert derived["value_font_sz"] != 11
-
-    def test_gray_fill_pixel_is_not_black(self) -> None:
-        img = render_to_image(
-            [self._base_widget(fill_gray=85, tick_gray=0)],
-            self._config("400"),
-        )
-        assert 60 < img.getpixel((230, 35)) < 120
-
     def test_icon_size_follows_font_size(self) -> None:
-        def icon_px(font_size: int) -> int:
+        def icon_and_font(h: int) -> tuple[int, int]:
             ctx = self._inside_ctx(
-                "200",
-                icon_positive="mdi:transmission-tower",
-                font_size=font_size,
+                "200", icon_positive="mdi:transmission-tower", h=h
             )
-            return int(str(ctx["icon_svg"]).split('width="')[1].split('"')[0])
+            svg = str(ctx["icon_svg"])
+            px = int(svg.split('width="')[1].split('"')[0])
+            return px, int(ctx["value_font_sz"])
 
-        assert icon_px(12) < icon_px(17) < icon_px(24)
-        assert icon_px(20) == round(20 * 1.2)
+        small, big = icon_and_font(24), icon_and_font(48)
+        assert small[0] < big[0]
+        for icon_px, font in (small, big):
+            assert icon_px == round(font * 1.2)
 
-    def test_default_position_unchanged(self) -> None:
-        ctx = _build_bar_context(self._base_widget(), self._config("0"))
-        assert ctx["value_anchor"] == "start"
-        assert ctx["track_w"] < 380
+    # ── Pixels ─────────────────────────────────────────────────────────
+
+    # Widget sits at y=20, h=30: track spans y 20..50 (centre 35).
+
+    def test_zero_draws_hollow_outline_without_tick(self) -> None:
+        img = render_to_image([self._base_widget()], self._config("0"))
+        # Inside the outline stays white, including where zero is.
+        assert img.getpixel((60, 35)) == 255
+        assert img.getpixel((144, 35)) == 255
+        # The outline itself is light gray.
+        assert 120 < img.getpixel((60, 21)) < 230
+
+    def test_positive_fill_is_right_of_centre_only(self) -> None:
+        img = render_to_image([self._base_widget()], self._config("400"))
+        assert img.getpixel((230, 35)) < 60
+        assert img.getpixel((60, 35)) == 255
+
+    def test_negative_fill_is_left_of_centre_only(self) -> None:
+        img = render_to_image([self._base_widget()], self._config("-400"))
+        assert img.getpixel((60, 35)) < 60
+        assert img.getpixel((230, 35)) == 255
+
+    def test_value_text_stays_inside_widget(self) -> None:
+        img = render_to_image(
+            [self._base_widget()], self._config("-400", width=800)
+        )
+        assert_has_dark_pixels(img, 304, 22, 380, 48, threshold=100)
+        assert_all_white(img, 381, 0, 800, 100)
 
     # ── Display levels ─────────────────────────────────────────────────
 
-    def test_track_gray_default_and_override(self) -> None:
-        default = _build_bar_context(self._base_widget(), self._config("0"))
-        assert default["track_color"] == "#aaaaaa"
-        light = _build_bar_context(
-            self._base_widget(track_gray=212), self._config("0")
-        )
-        assert light["track_color"] == "#d4d4d4"
-
-    def test_track_is_flat_after_dithering(self) -> None:
-        # With the optimiser on, an off-level gray would be dithered
-        # into a stipple; the default track is a display level and must
-        # stay one flat tone.
+    def test_outline_is_flat_after_dithering(self) -> None:
+        # The outline gray is a display level, so even with the
+        # optimiser on it must stay one solid tone, not a stipple.
         cfg = self._config("289", width=800, display_levels=4, optimize=True)
         img = render_to_image([self._base_widget(x=360)], cfg)
-        # Row through the left half of the track (x 364..500, y 35).
-        row = {img.getpixel((x, 35)) for x in range(364, 500)}
+        # Row through the top stroke of the left half (y 21).
+        row = {img.getpixel((x, 21)) for x in range(400, 490)}
         assert row == {170}
 
     def test_zero_text_is_not_stippled_after_dithering(self) -> None:
         # The zero-state text gray is a display level, so that level
         # dominates; the rest is antialiasing at the glyph edges.
         cfg = self._config("0", width=800, display_levels=4, optimize=True)
-        img = render_to_image([self._base_widget(x=360)], cfg)
+        # Autocontrast stretches the darkest tone to black, so the image
+        # needs a black element besides the gray zero text.
+        black = {
+            "type": "heading",
+            "heading": "Black",
+            "x": 0,
+            "y": 60,
+            "w": 200,
+            "h": 30,
+            "card_style": "none",
+        }
+        img = render_to_image([self._base_widget(x=360), black], cfg)
         pixels = [
             img.getpixel((x, y))
             for x in range(660, 740)
             for y in range(25, 46)
         ]
         assert pixels.count(85) > 2 * pixels.count(170)
-
-    def test_lighter_track_gray_is_dithered_on_four_levels(self) -> None:
-        # Nothing between level 170 and white is a real level, so a
-        # lighter track must be a mix of exactly those two tones.
-        cfg = self._config("289", width=800, display_levels=4, optimize=True)
-        img = render_to_image([self._base_widget(x=360, track_gray=212)], cfg)
-        row = {img.getpixel((x, 35)) for x in range(364, 500)}
-        assert row == {170, 255}

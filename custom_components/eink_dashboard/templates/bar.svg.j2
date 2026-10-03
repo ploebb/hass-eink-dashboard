@@ -1,40 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      width="{{ w }}" height="{{ h }}">
 {%- if has_entity -%}
-{# Track: light gray (or track_gray), fully rounded. #}
-{%- if outline -%}
-{# Outline only: stroke centred on a rect inset by half its width, so
-   the outer edge matches the filled track. #}
+{# Track: light-gray outline only, stroke centred on a rect inset by
+   half its width so the outer edge fills the widget. #}
 <rect x="{{ track_x + outline_w / 2 }}" y="{{ track_top + outline_w / 2 }}"
   width="{{ track_w - outline_w }}" height="{{ track_h - outline_w }}"
   rx="{{ track_r - outline_w / 2 }}" ry="{{ track_r - outline_w / 2 }}"
-  fill="none" stroke="{{ track_color }}" stroke-width="{{ outline_w }}"/>
-{%- else -%}
-<rect x="{{ track_x }}" y="{{ track_top }}"
-  width="{{ track_w }}" height="{{ track_h }}"
-  rx="{{ track_r }}" ry="{{ track_r }}"
-  fill="{{ track_color }}"/>
-{%- endif -%}
+  fill="none" stroke="{{ hex_light_gray }}" stroke-width="{{ outline_w }}"/>
 {%- if fill_path -%}
-{# Fill: flat at the zero line, rounded at the outer end. #}
-<path d="{{ fill_path }}" fill="{{ fill_color }}"/>
+{# Fill: flat at the zero position, rounded at the outer end. #}
+<path d="{{ fill_path }}" fill="{{ hex_black }}"/>
 {%- endif -%}
-{# Zero tick: overshoots the track so it stays visible on a fill. #}
-<rect x="{{ zero_x - tick_w / 2 }}" y="{{ tick_top }}"
-  width="{{ tick_w }}" height="{{ tick_h }}"
-  fill="{{ tick_color }}"/>
 {%- if icon_svg -%}
 <g transform="translate({{ icon_x }}, {{ icon_y }})"
   style="color: {{ hex_black }}">{{ icon_svg }}</g>
-{%- endif -%}
-{%- if name_text -%}
-<text
-  x="{{ name_x }}" y="{{ value_y }}"
-  font-family="Roboto"
-  font-size="{{ value_font_sz }}"
-  text-anchor="{{ name_anchor }}"
-  dominant-baseline="central"
-  fill="{{ hex_black }}">{{ name_text }}</text>
 {%- endif -%}
 {%- if show_value -%}
 <text

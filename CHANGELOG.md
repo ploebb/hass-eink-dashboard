@@ -9,28 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Bar widget**: horizontal bar with zero at the centre of the
-  track for signed readings such as grid power. The fill grows left
-  for negative and right for positive values, flat at the zero tick
-  and rounded at the outer end, with the value as text next to the
-  track. Options: `min`, `max`, `unit`, `show_unit`, `show_value`,
-  `show_sign`, `decimals`, `attribute`, `bold_value`, `track_gray`,
-  `value_position`. With `value_position: inside` the track spans the
-  full widget width and the value sits in the empty half of the
-  track, left of the zero tick for positive values and right of it
-  for negative ones, in a smaller, non-bold font.
-  `track_style: outline` draws only a thin light-gray outline instead
-  of a filled track, which stays solid on few-level panels.
-  `name` draws a title inside the track on the empty side, at the
-  outer end (left-aligned on the left half, right-aligned on the
-  right half).
-  `icon_positive` / `icon_negative` draw an MDI icon in the same
-  spot for positive or negative values (for example a grid icon for
-  import and a solar icon for feed-in), replacing the name for that
-  sign.
-  `fill_gray`, `tick_gray`, `tick_width` and `font_size` adjust the
-  fill and zero-tick colour, the tick width and the text size.
-  Icons scale with the text size.
+- **Bar widget**: horizontal bar with zero at the centre of a
+  light-gray outlined track for signed readings such as grid power.
+  The black fill grows left for negative and right for positive
+  values, flat at the zero position and rounded at the outer end.
+  Options: `min`, `max`, `unit`, `show_unit`, `show_value`,
+  `show_sign`, `decimals`, `attribute`, `bold_value`,
+  `value_position`, `icon_positive`, `icon_negative`. By default the
+  value is shown next to the track. With `value_position: inside`
+  the track spans the full widget width and the value sits in the
+  empty half of the track next to the zero position, left of it for
+  positive values and right of it for negative ones, in a smaller,
+  non-bold font. `icon_positive` / `icon_negative` draw an MDI icon
+  at the outer end of the empty half (for example a grid icon for
+  import and a solar icon for feed-in); icons scale with the text.
 - **Hinted text rendering**: display settings `hinted_text`,
   `font_family` (Roboto, DejaVu Sans, Ubuntu) and `text_size_delta`.
   Text is drawn by Pillow with FreeType hinting and no
