@@ -284,6 +284,38 @@ class TestRenderBar:
         ctx = self._inside_ctx("200", icon_positive="mdi:no-such-icon-xyz")
         assert not ctx["icon_svg"]
 
+    def test_fill_and_tick_default_to_black(self) -> None:
+        ctx = _build_bar_context(self._base_widget(), self._config("0"))
+        assert ctx["fill_color"] == ctx["hex_black"]
+        assert ctx["tick_color"] == ctx["hex_black"]
+
+    def test_fill_and_tick_gray_options(self) -> None:
+        ctx = _build_bar_context(
+            self._base_widget(fill_gray=85, tick_gray=85, tick_width=2),
+            self._config("200"),
+        )
+        assert ctx["fill_color"] == ctx["hex_gray"]
+        assert ctx["tick_color"] == ctx["hex_gray"]
+        assert ctx["tick_w"] == 2
+
+    def test_font_size_option_overrides_derived_size(self) -> None:
+        derived = _build_bar_context(
+            self._base_widget(value_position="inside"), self._config("0")
+        )
+        ctx = _build_bar_context(
+            self._base_widget(value_position="inside", font_size=11),
+            self._config("0"),
+        )
+        assert ctx["value_font_sz"] == 11
+        assert derived["value_font_sz"] != 11
+
+    def test_gray_fill_pixel_is_not_black(self) -> None:
+        img = render_to_image(
+            [self._base_widget(fill_gray=85, tick_gray=0)],
+            self._config("400"),
+        )
+        assert 60 < img.getpixel((230, 35)) < 120
+
     def test_default_position_unchanged(self) -> None:
         ctx = _build_bar_context(self._base_widget(), self._config("0"))
         assert ctx["value_anchor"] == "start"

@@ -127,6 +127,13 @@ def _build_bar_context(
             positive or negative values, e.g. a grid icon for import
             and a solar icon for feed-in; replaces the name for that
             sign; nothing is drawn at zero; default none),
+            ``fill_gray`` (gray of the fill, 0-255; default 0,
+            black),
+            ``tick_gray`` (gray of the zero tick, 0-255; default 0),
+            ``tick_width`` (zero tick width in pixels; default
+            derived from the track height),
+            ``font_size`` (value and name font size in pixels;
+            default derived from the track height),
             ``track_style`` (``"filled"`` draws the track as a solid
             light-gray bar; ``"outline"`` draws only a thin light-gray
             outline, which stays solid on few-level panels where a
@@ -164,6 +171,8 @@ def _build_bar_context(
     inside: bool = widget.get("value_position", "outside") == "inside"
     value_bold: bool = bool(widget.get("bold_value", not inside))
     track_gray = widget.get("track_gray")
+    fill_gray = int(widget.get("fill_gray", 0))
+    tick_gray = int(widget.get("tick_gray", 0))
 
     state = states.get(entity_id) if entity_id else None
     if state is None:
@@ -193,6 +202,8 @@ def _build_bar_context(
     font_sz = max(
         8, round(track_h * (_INSIDE_FONT_RATIO if inside else _FONT_RATIO))
     )
+    if widget.get("font_size") is not None:
+        font_sz = max(8, int(widget["font_size"]))
     gap = round(track_h * _GAP_RATIO)
     value_w = round(font_sz * _VALUE_W_RATIO) if show_value else 0
     reserved = value_w + gap if show_value and not inside else 0
@@ -232,6 +243,8 @@ def _build_bar_context(
     # Inside the track the text sits in the half without fill, hugging
     # the zero tick; zero and unknown values use the left half.
     tick_w = max(2, round(track_h * 0.18))
+    if widget.get("tick_width") is not None:
+        tick_w = max(1, int(widget["tick_width"]))
     value_x = track_w + gap
     value_anchor = "start"
     pad_inside = round(track_h * _INSIDE_PAD_RATIO)
@@ -308,6 +321,8 @@ def _build_bar_context(
             else colors["hex_light_gray"]
         ),
         "fill_path": fill_path,
+        "fill_color": color_to_hex(fill_gray),
+        "tick_color": color_to_hex(tick_gray),
         "show_value": show_value,
         "value_text": value_text,
         "value_x": value_x,

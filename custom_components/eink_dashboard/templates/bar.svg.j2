@@ -17,12 +17,12 @@
 {%- endif -%}
 {%- if fill_path -%}
 {# Fill: flat at the zero line, rounded at the outer end. #}
-<path d="{{ fill_path }}" fill="{{ hex_black }}"/>
+<path d="{{ fill_path }}" fill="{{ fill_color }}"/>
 {%- endif -%}
 {# Zero tick: overshoots the track so it stays visible on a fill. #}
 <rect x="{{ zero_x - tick_w / 2 }}" y="{{ tick_top }}"
   width="{{ tick_w }}" height="{{ tick_h }}"
-  fill="{{ hex_black }}"/>
+  fill="{{ tick_color }}"/>
 {%- if icon_svg -%}
 <g transform="translate({{ icon_x }}, {{ icon_y }})"
   style="color: {{ hex_black }}">{{ icon_svg }}</g>
